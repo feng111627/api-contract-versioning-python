@@ -1,0 +1,500 @@
+{
+  "service": {
+    "name": "api-contract-versioning",
+    "title": "API Contract Versioning"
+  },
+  "shared": {
+    "error_codes": [
+      {
+        "code": "BAD_REQUEST",
+        "http_status": 400,
+        "message": "请求参数有误。"
+      },
+      {
+        "code": "CONFLICT",
+        "http_status": 409,
+        "message": "请求与当前资源状态冲突。"
+      },
+      {
+        "code": "INTERNAL_ERROR",
+        "http_status": 500,
+        "message": "服务内部错误，请稍后重试。"
+      },
+      {
+        "code": "RATE_LIMITED",
+        "http_status": 429,
+        "message": "请求过于频繁，请稍后再试。"
+      },
+      {
+        "code": "RESOURCE_NOT_FOUND",
+        "http_status": 404,
+        "message": "目标资源不存在。"
+      },
+      {
+        "code": "VALIDATION_ERROR",
+        "http_status": 422,
+        "message": "请求参数校验失败。"
+      },
+      {
+        "code": "VERSION_RETIRED",
+        "http_status": 410,
+        "message": "请求的接口版本已下线，请升级到推荐版本。"
+      },
+      {
+        "code": "VERSION_UNKNOWN",
+        "http_status": 404,
+        "message": "请求的接口版本不存在。"
+      }
+    ],
+    "error_response_schema": {
+      "$defs": {
+        "ErrorBody": {
+          "description": "错误信封内层结构。",
+          "properties": {
+            "code": {
+              "description": "稳定错误码，如 VALIDATION_ERROR。",
+              "title": "Code",
+              "type": "string"
+            },
+            "details": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/$defs/ErrorDetail"
+                  },
+                  "type": "array"
+                },
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "可选的字段级明细或补充信息；无补充时不出现。",
+              "title": "Details"
+            },
+            "message": {
+              "description": "面向调用方的错误说明，不包含内部细节。",
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "ErrorBody",
+          "type": "object"
+        },
+        "ErrorDetail": {
+          "description": "单条字段级错误明细。",
+          "properties": {
+            "field": {
+              "description": "出错字段的位置，形如 user.email；根级错误为 (root)。",
+              "title": "Field",
+              "type": "string"
+            },
+            "issue": {
+              "description": "该字段的问题描述（人类可读）。",
+              "title": "Issue",
+              "type": "string"
+            }
+          },
+          "required": [
+            "field",
+            "issue"
+          ],
+          "title": "ErrorDetail",
+          "type": "object"
+        }
+      },
+      "description": "所有错误响应的统一顶层信封::\n\n{\"error\": {\"code\": \"...\", \"message\": \"...\", \"details\": [...]}}",
+      "properties": {
+        "error": {
+          "$ref": "#/$defs/ErrorBody"
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "title": "ErrorResponse",
+      "type": "object"
+    },
+    "unknown_version_policy": {
+      "error_code": "VERSION_UNKNOWN",
+      "http_status": 404
+    }
+  },
+  "versions": [
+    {
+      "endpoints": [],
+      "retirement_policy": {
+        "error_code": "VERSION_RETIRED",
+        "http_status": 410
+      },
+      "version": {
+        "deprecated_since": "2024-06-01",
+        "introduced": "2023-01-01",
+        "name": "v0",
+        "notes": "最早版本，已停止服务，访问一律返回 410 VERSION_RETIRED。",
+        "status": "retired",
+        "successor": "v1",
+        "sunset": "2025-01-01"
+      }
+    },
+    {
+      "endpoints": [
+        {
+          "deprecated": false,
+          "methods": [
+            "GET"
+          ],
+          "path": "/v1/users",
+          "request_schema": null,
+          "response_schema": null,
+          "summary": "[v1] 查询用户列表（已废弃）"
+        },
+        {
+          "deprecated": false,
+          "methods": [
+            "POST"
+          ],
+          "path": "/v1/users",
+          "request_schema": {
+            "properties": {
+              "email": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "邮箱，可选。",
+                "title": "Email"
+              },
+              "name": {
+                "description": "完整姓名。",
+                "maxLength": 100,
+                "minLength": 1,
+                "title": "Name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "title": "CreateUserV1Request",
+            "type": "object"
+          },
+          "response_schema": {
+            "description": "v1 用户视图：单一 name 字段，不含 tier（v2 才引入）。",
+            "properties": {
+              "email": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "邮箱。",
+                "title": "Email"
+              },
+              "id": {
+                "description": "用户 ID。",
+                "title": "Id",
+                "type": "integer"
+              },
+              "name": {
+                "description": "姓名（单字段，v2 起拆分为 first_name/last_name）。",
+                "title": "Name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "title": "UserV1",
+            "type": "object"
+          },
+          "summary": "[v1] 创建用户（已废弃）"
+        },
+        {
+          "deprecated": false,
+          "methods": [
+            "GET"
+          ],
+          "path": "/v1/users/{user_id}",
+          "request_schema": null,
+          "response_schema": {
+            "description": "v1 用户视图：单一 name 字段，不含 tier（v2 才引入）。",
+            "properties": {
+              "email": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "邮箱。",
+                "title": "Email"
+              },
+              "id": {
+                "description": "用户 ID。",
+                "title": "Id",
+                "type": "integer"
+              },
+              "name": {
+                "description": "姓名（单字段，v2 起拆分为 first_name/last_name）。",
+                "title": "Name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "title": "UserV1",
+            "type": "object"
+          },
+          "summary": "[v1] 按 ID 查询用户（已废弃）"
+        }
+      ],
+      "version": {
+        "deprecated_since": "2026-10-06",
+        "introduced": "2024-01-01",
+        "name": "v1",
+        "notes": "用户模型使用单字段 name；请迁移到 v2 的 first_name/last_name。",
+        "status": "deprecated",
+        "successor": "v2",
+        "sunset": "2027-04-01"
+      }
+    },
+    {
+      "endpoints": [
+        {
+          "deprecated": true,
+          "methods": [
+            "GET"
+          ],
+          "path": "/v2/reports/legacy-summary",
+          "request_schema": null,
+          "response_schema": null,
+          "summary": "[已废弃] 旧版用户汇总报表，计划 2027-04-01 下线"
+        },
+        {
+          "deprecated": false,
+          "methods": [
+            "GET"
+          ],
+          "path": "/v2/users",
+          "request_schema": null,
+          "response_schema": null,
+          "summary": "查询用户列表（v2）"
+        },
+        {
+          "deprecated": false,
+          "methods": [
+            "POST"
+          ],
+          "path": "/v2/users",
+          "request_schema": {
+            "description": "创建用户请求（v2）。\n\n兼容期内同时接受拆分后的 first_name/last_name 与 v1 风格的 name；\n两者必须且只能提供一种。",
+            "properties": {
+              "email": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "deprecated": true,
+                "title": "Email"
+              },
+              "first_name": {
+                "anyOf": [
+                  {
+                    "maxLength": 50,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "First Name"
+              },
+              "last_name": {
+                "anyOf": [
+                  {
+                    "maxLength": 50,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Last Name"
+              },
+              "name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "deprecated": true,
+                "description": "[已废弃] v1 风格完整姓名，仅兼容期可用；请改用 first_name/last_name。",
+                "title": "Name"
+              },
+              "tier": {
+                "default": "free",
+                "pattern": "^(free|pro|enterprise)$",
+                "title": "Tier",
+                "type": "string"
+              }
+            },
+            "title": "CreateUserV2Request",
+            "type": "object"
+          },
+          "response_schema": {
+            "description": "v2 用户视图。",
+            "properties": {
+              "email": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "deprecated": true,
+                "description": "[已废弃] 邮箱字段，计划在 v3 移除；请改用联系方式接口。",
+                "sunset": "2027-10-01",
+                "title": "Email"
+              },
+              "first_name": {
+                "description": "名。",
+                "title": "First Name",
+                "type": "string"
+              },
+              "id": {
+                "description": "用户 ID。",
+                "title": "Id",
+                "type": "integer"
+              },
+              "last_name": {
+                "description": "姓。",
+                "title": "Last Name",
+                "type": "string"
+              },
+              "tier": {
+                "description": "会员等级：free / pro / enterprise。",
+                "title": "Tier",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "first_name",
+              "last_name",
+              "tier"
+            ],
+            "title": "UserV2",
+            "type": "object"
+          },
+          "summary": "创建用户（v2）"
+        },
+        {
+          "deprecated": false,
+          "methods": [
+            "GET"
+          ],
+          "path": "/v2/users/{user_id}",
+          "request_schema": null,
+          "response_schema": {
+            "description": "v2 用户视图。",
+            "properties": {
+              "email": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "deprecated": true,
+                "description": "[已废弃] 邮箱字段，计划在 v3 移除；请改用联系方式接口。",
+                "sunset": "2027-10-01",
+                "title": "Email"
+              },
+              "first_name": {
+                "description": "名。",
+                "title": "First Name",
+                "type": "string"
+              },
+              "id": {
+                "description": "用户 ID。",
+                "title": "Id",
+                "type": "integer"
+              },
+              "last_name": {
+                "description": "姓。",
+                "title": "Last Name",
+                "type": "string"
+              },
+              "tier": {
+                "description": "会员等级：free / pro / enterprise。",
+                "title": "Tier",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "first_name",
+              "last_name",
+              "tier"
+            ],
+            "title": "UserV2",
+            "type": "object"
+          },
+          "summary": "按 ID 查询用户（v2）"
+        }
+      ],
+      "version": {
+        "deprecated_since": null,
+        "introduced": "2026-10-06",
+        "name": "v2",
+        "notes": "当前推荐版本；email 字段已标记为字段级废弃。",
+        "status": "active",
+        "successor": null,
+        "sunset": null
+      }
+    }
+  ]
+}
