@@ -1,0 +1,208 @@
+{
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/v2/users",
+      "request": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Display Name"
+          },
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "email"
+        ],
+        "title": "UserCreateV2",
+        "type": "object"
+      },
+      "response": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Display Name"
+          },
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ],
+        "title": "UserV2",
+        "type": "object"
+      },
+      "summary": "create_user",
+      "version": "v2"
+    },
+    {
+      "method": "GET",
+      "path": "/v2/users/{user_id}",
+      "request": null,
+      "response": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Display Name"
+          },
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ],
+        "title": "UserV2",
+        "type": "object"
+      },
+      "summary": "get_user",
+      "version": "v2"
+    }
+  ],
+  "errors": {
+    "codes": [
+      "BUSINESS_RULE_VIOLATION",
+      "INTERNAL_ERROR",
+      "NOT_FOUND",
+      "VALIDATION_FAILED",
+      "VERSION_SUNSET",
+      "VERSION_UNKNOWN"
+    ],
+    "envelope": {
+      "$defs": {
+        "ErrorBody": {
+          "description": "统一错误负载。",
+          "properties": {
+            "api_version": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Api Version"
+            },
+            "code": {
+              "$ref": "#/$defs/ErrorCode"
+            },
+            "details": {
+              "default": [],
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "title": "Details",
+              "type": "array"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "ErrorBody",
+          "type": "object"
+        },
+        "ErrorCode": {
+          "description": "稳定的对外错误码。",
+          "enum": [
+            "VALIDATION_FAILED",
+            "NOT_FOUND",
+            "VERSION_SUNSET",
+            "VERSION_UNKNOWN",
+            "BUSINESS_RULE_VIOLATION",
+            "INTERNAL_ERROR"
+          ],
+          "title": "ErrorCode",
+          "type": "string"
+        }
+      },
+      "description": "统一错误响应外壳。",
+      "properties": {
+        "error": {
+          "$ref": "#/$defs/ErrorBody"
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "title": "ErrorEnvelope",
+      "type": "object"
+    }
+  },
+  "version": {
+    "deprecated_fields": {},
+    "deprecated_since": null,
+    "name": "v2",
+    "status": "active",
+    "successor": null,
+    "sunset_at": null
+  }
+}

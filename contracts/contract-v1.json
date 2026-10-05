@@ -1,0 +1,195 @@
+{
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/v1/users",
+      "request": {
+        "properties": {
+          "name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "deprecated": true,
+            "description": "已废弃，将在 v1 下线时移除，请迁移到 v2 的 display_name",
+            "title": "Nickname"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "UserCreateV1",
+        "type": "object"
+      },
+      "response": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "deprecated": true,
+            "title": "Nickname"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "UserV1",
+        "type": "object"
+      },
+      "summary": "create_user",
+      "version": "v1"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/users/{user_id}",
+      "request": null,
+      "response": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "deprecated": true,
+            "title": "Nickname"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "UserV1",
+        "type": "object"
+      },
+      "summary": "get_user",
+      "version": "v1"
+    }
+  ],
+  "errors": {
+    "codes": [
+      "BUSINESS_RULE_VIOLATION",
+      "INTERNAL_ERROR",
+      "NOT_FOUND",
+      "VALIDATION_FAILED",
+      "VERSION_SUNSET",
+      "VERSION_UNKNOWN"
+    ],
+    "envelope": {
+      "$defs": {
+        "ErrorBody": {
+          "description": "统一错误负载。",
+          "properties": {
+            "api_version": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Api Version"
+            },
+            "code": {
+              "$ref": "#/$defs/ErrorCode"
+            },
+            "details": {
+              "default": [],
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "title": "Details",
+              "type": "array"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "ErrorBody",
+          "type": "object"
+        },
+        "ErrorCode": {
+          "description": "稳定的对外错误码。",
+          "enum": [
+            "VALIDATION_FAILED",
+            "NOT_FOUND",
+            "VERSION_SUNSET",
+            "VERSION_UNKNOWN",
+            "BUSINESS_RULE_VIOLATION",
+            "INTERNAL_ERROR"
+          ],
+          "title": "ErrorCode",
+          "type": "string"
+        }
+      },
+      "description": "统一错误响应外壳。",
+      "properties": {
+        "error": {
+          "$ref": "#/$defs/ErrorBody"
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "title": "ErrorEnvelope",
+      "type": "object"
+    }
+  },
+  "version": {
+    "deprecated_fields": {
+      "nickname": "2026-01-15"
+    },
+    "deprecated_since": "2026-01-15",
+    "name": "v1",
+    "status": "deprecated",
+    "successor": "v2",
+    "sunset_at": "2026-12-31"
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "endpoints": [],
+  "errors": {
+    "codes": [
+      "BUSINESS_RULE_VIOLATION",
+      "INTERNAL_ERROR",
+      "NOT_FOUND",
+      "VALIDATION_FAILED",
+      "VERSION_SUNSET",
+      "VERSION_UNKNOWN"
+    ],
+    "envelope": {
+      "$defs": {
+        "ErrorBody": {
+          "description": "统一错误负载。",
+          "properties": {
+            "api_version": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Api Version"
+            },
+            "code": {
+              "$ref": "#/$defs/ErrorCode"
+            },
+            "details": {
+              "default": [],
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "title": "Details",
+              "type": "array"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "title": "ErrorBody",
+          "type": "object"
+        },
+        "ErrorCode": {
+          "description": "稳定的对外错误码。",
+          "enum": [
+            "VALIDATION_FAILED",
+            "NOT_FOUND",
+            "VERSION_SUNSET",
+            "VERSION_UNKNOWN",
+            "BUSINESS_RULE_VIOLATION",
+            "INTERNAL_ERROR"
+          ],
+          "title": "ErrorCode",
+          "type": "string"
+        }
+      },
+      "description": "统一错误响应外壳。",
+      "properties": {
+        "error": {
+          "$ref": "#/$defs/ErrorBody"
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "title": "ErrorEnvelope",
+      "type": "object"
+    }
+  },
+  "version": {
+    "deprecated_fields": {},
+    "deprecated_since": "2025-06-01",
+    "name": "v0",
+    "status": "sunset",
+    "successor": "v2",
+    "sunset_at": "2026-01-01"
+  }
+}
