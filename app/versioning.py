@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date
 from enum import Enum
+from typing import Any
 
 
 class VersionStatus(str, Enum):
@@ -15,13 +16,42 @@ class VersionStatus(str, Enum):
 
 
 @dataclass(frozen=True)
+class FieldDeprecation:
+    """字段级废弃说明（运行时提醒与契约文档共用的唯一事实来源）。
+
+    - field: 字段名（模型层面的名字）。
+    - deprecated_since: 标记废弃的日期。
+    - sunset_at: 计划随版本下线的日期。
+    - successor_field: 建议迁移到的目标字段（可跨版本，如 v2.display_name）。
+    - reason: 给调用方看的人话说明。
+    """
+
+    field: str
+    deprecated_since: date
+    sunset_at: date | None = None
+    successor_field: str | None = None
+    reason: str | None = None
+
+    def to_doc(self) -> dict[str, Any]:
+        return {
+            "field": self.field,
+            "deprecated_since": self.deprecated_since.isoformat(),
+            "sunset_at": self.sunset_at.isoformat() if self.sunset_at else None,
+            "successor_field": self.successor_field,
+            "reason": self.reason,
+        }
+
+
+@dataclass(frozen=True)
 class VersionInfo:
     """单个接口版本的元数据。
 
     - deprecated_since: 标记废弃的日期（仍可用，但响应会带废弃提示）。
     - sunset_at: 计划下线日期；到达该日期后请求一律被拒绝。
     - successor: 建议迁移到的后继版本。
-    - deprecated_fields: 字段名 -> 废弃日期，用于文档与响应提示。
+    - deprecated_fields: 字段名 -> 废弃日期，用于文档与响应提示（保留旧接口）。
+    - field_deprecations: 结构化字段废弃说明（下线时间/迁向/原因），
+      为空时由 deprecated_fields 自动派生最小说明。
     """
 
     name: str
@@ -30,6 +60,24 @@ class VersionInfo:
     sunset_at: date | None = None
     successor: str | None = None
     deprecated_fields: dict[str, date] = field(default_factory=dict)
+    field_deprecations: tuple[FieldDeprecation, ...] = ()
+
+    def resolved_field_deprecations(self) -> tuple[FieldDeprecation, ...]:
+        """合并显式结构化说明与 deprecated_fields 中的简表，按字段名确定序返回。"""
+        explicit = {d.field: d for d in self.field_deprecations}
+        merged: dict[str, FieldDeprecation] = {}
+        for name, day in self.deprecated_fields.items():
+            merged[name] = explicit.get(
+                name,
+                FieldDeprecation(
+                    field=name,
+                    deprecated_since=day,
+                    sunset_at=self.sunset_at,
+                ),
+            )
+        for name, dep in explicit.items():
+            merged.setdefault(name, dep)
+        return tuple(merged[k] for k in sorted(merged))
 
 
 class VersionRegistry:
@@ -80,6 +128,15 @@ def build_default_registry() -> VersionRegistry:
             sunset_at=date(2026, 12, 31),
             successor="v2",
             deprecated_fields={"nickname": date(2026, 1, 15)},
+            field_deprecations=(
+                FieldDeprecation(
+                    field="nickname",
+                    deprecated_since=date(2026, 1, 15),
+                    sunset_at=date(2026, 12, 31),
+                    successor_field="v2.display_name",
+                    reason="nickname 随 v1 一并下线，请改用 v2 接口的 display_name 字段",
+                ),
+            ),
         )
     )
     registry.register(VersionInfo(name="v2", status=VersionStatus.ACTIVE))

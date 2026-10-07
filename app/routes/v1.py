@@ -1,12 +1,17 @@
 """v1 路由（已废弃，保持旧契约可用）。"""
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from app.middleware import detect_deprecated_request_fields
 from app.schemas.v1 import UserCreateV1, UserV1
 from app.store import store
 
-router = APIRouter(prefix="/v1", tags=["v1"])
+router = APIRouter(
+    prefix="/v1",
+    tags=["v1"],
+    dependencies=[Depends(detect_deprecated_request_fields)],
+)
 
 
 @router.post("/users", response_model=UserV1, status_code=201)

@@ -78,6 +78,7 @@
     }
   },
   "version": {
+    "deprecated_field_details": [],
     "deprecated_fields": {},
     "deprecated_since": "2025-06-01",
     "name": "v0",

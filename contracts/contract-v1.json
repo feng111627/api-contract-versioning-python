@@ -183,6 +183,15 @@
     }
   },
   "version": {
+    "deprecated_field_details": [
+      {
+        "deprecated_since": "2026-01-15",
+        "field": "nickname",
+        "reason": "nickname 随 v1 一并下线，请改用 v2 接口的 display_name 字段",
+        "successor_field": "v2.display_name",
+        "sunset_at": "2026-12-31"
+      }
+    ],
     "deprecated_fields": {
       "nickname": "2026-01-15"
     },

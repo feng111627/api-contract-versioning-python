@@ -198,6 +198,7 @@
     }
   },
   "version": {
+    "deprecated_field_details": [],
     "deprecated_fields": {},
     "deprecated_since": null,
     "name": "v2",
