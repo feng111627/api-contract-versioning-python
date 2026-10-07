@@ -42,7 +42,12 @@ def _version_block(info: VersionInfo) -> dict[str, Any]:
         "sunset_at": info.sunset_at.isoformat() if info.sunset_at else None,
         "successor": info.successor,
         "deprecated_fields": {
-            field: day.isoformat() for field, day in sorted(info.deprecated_fields.items())
+            field: (
+                day.isoformat()
+                if hasattr(day, "isoformat")
+                else day.deprecated_since.isoformat()
+            )
+            for field, day in sorted(info.deprecated_fields.items())
         },
     }
 
@@ -120,20 +125,18 @@ def write_snapshots(
     directory: Path,
     *,
     allow_update: bool = False,
+    allow_breaking: bool = False,
 ) -> list[Path]:
-    """按版本写快照文件。已存在且内容不同的快照默认拒绝覆盖。"""
-    contract = generate_contract(app, registry)
-    directory.mkdir(parents=True, exist_ok=True)
-    written: list[Path] = []
-    for version in [v.name for v in registry.all()]:
-        path = directory / f"contract-{version}.json"
-        content = render_json(contract_for_version(contract, version))
-        if path.exists() and path.read_text(encoding="utf-8") != content:
-            if not allow_update:
-                raise SnapshotConflictError(
-                    f"snapshot {path} differs from generated contract; "
-                    "refusing to overwrite history (use allow_update to bump intentionally)"
-                )
-        path.write_text(content, encoding="utf-8")
-        written.append(path)
-    return written
+    """按版本写快照文件。
+
+    并发安全、原子写入；默认拒绝覆盖有任何变化的历史快照，含破坏性变更时
+    抛 ``BreakingChangeError``。实现见 :class:`app.snapshot.SnapshotStore`。
+    """
+    from app.snapshot import SnapshotStore
+
+    return SnapshotStore(directory).write_all(
+        app,
+        registry,
+        allow_update=allow_update,
+        allow_breaking=allow_breaking,
+    )

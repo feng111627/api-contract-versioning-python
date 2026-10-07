@@ -88,3 +88,25 @@ def test_contract_endpoint_serves_self_description(client):
     body = client.get("/contract").json()
     assert [v["name"] for v in body["versions"]] == ["v0", "v1", "v2"]
     assert body["errors"]["codes"]
+
+
+def test_contract_diff_endpoint_reports_committed_vs_generated(client):
+    logger.info("用例: /contract/diff 返回历史快照与当前代码的结构化差异报告")
+    body = client.get("/contract/diff").json()
+    assert "versions" in body
+    assert body["has_changes"] is False
+    assert body["has_breaking_changes"] is False
+    assert set(body["versions"]) == {"v0", "v1", "v2"}
+    for name, report in body["versions"].items():
+        assert report["version"] == name
+        assert {"has_changes", "has_breaking_changes",
+                "breaking_change_count", "compatible_change_count", "changes"} <= set(report)
+
+
+def test_contract_diff_endpoint_version_filter(client):
+    logger.info("用例: /contract/diff?version=v1 返回单版本切片，未知版本 404")
+    r = client.get("/contract/diff?version=v1")
+    assert r.status_code == 200
+    assert r.json()["version"] == "v1"
+    r = client.get("/contract/diff?version=v9")
+    assert r.status_code == 404
